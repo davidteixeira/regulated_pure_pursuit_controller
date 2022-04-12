@@ -94,16 +94,16 @@ namespace regulated_pure_pursuit_controller
     
         //Lookahead
         nh.param<double>("lookahead_time", lookahead_time_, 1.5);
-        nh.param<double>("lookahead_dist", lookahead_dist_, 0.25);
+        nh.param<double>("lookahead_dist", lookahead_dist_, 0.45);
         nh.param<bool>("use_velocity_scaled_lookahead_dist", use_velocity_scaled_lookahead_dist_, false);
         nh.param<double>("min_lookahead_dist", min_lookahead_dist_, 0.3);
         nh.param<double>("max_lookahead_dist", max_lookahead_dist_, 0.9);
 
         //Rotate to heading param
-        nh.param<bool>("use_rotate_to_heading", use_rotate_to_heading_, false);
+        nh.param<bool>("use_rotate_to_heading", use_rotate_to_heading_, true);
         nh.param<double>("rotate_to_heading_min_angle", rotate_to_heading_min_angle_, 0.785);
-        nh.param<double>("rotate_to_heading_angular_vel", rotate_to_heading_angular_vel_, 1.8);
-        nh.param<double>("max_angular_accel", max_angular_accel_, 1.5);
+        nh.param<double>("rotate_to_heading_angular_vel", rotate_to_heading_angular_vel_, 0.15);
+        nh.param<double>("max_angular_accel", max_angular_accel_, 0.1);
 
         //Reversing
         nh.param<bool>("allow_reversing", allow_reversing_, false);
@@ -114,8 +114,8 @@ namespace regulated_pure_pursuit_controller
         }
 
         //Speed
-        nh.param<double>("desired_linear_vel", desired_linear_vel_, 0.5);
-        nh.param<double>("max_angular_vel", max_angular_vel_, 1.5);
+        nh.param<double>("desired_linear_vel", desired_linear_vel_, 0.15);
+        nh.param<double>("max_angular_vel", max_angular_vel_, 0.15);
         nh.param<double>("min_approach_linear_velocity", min_approach_linear_velocity_, 0.05);
 
         //Regulated linear velocity scaling
@@ -137,7 +137,7 @@ namespace regulated_pure_pursuit_controller
         //Collision avoidance
         nh.param<double>("max_allowed_time_to_collision_up_to_carrot", max_allowed_time_to_collision_up_to_carrot_, 1.0);
         
-        nh.param<double>("goal_dist_tol", goal_dist_tol_, 0.25);
+        nh.param<double>("goal_dist_tol", goal_dist_tol_, 0.1);
 
         double control_frequency;
         nh.param<double>("control_frequency", control_frequency, 20);

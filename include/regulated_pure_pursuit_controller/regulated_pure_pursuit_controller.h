@@ -269,7 +269,7 @@ namespace regulated_pure_pursuit_controller{
        * Configs
        */
       std::string global_frame_{"map"};
-      std::string robot_base_frame_{"base_footprint"};
+      std::string robot_base_frame_{"base_link"};
 
       /**
        * Run-time variables
