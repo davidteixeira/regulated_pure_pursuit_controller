@@ -1,4 +1,4 @@
-<package>
+<package format="2">
   <name>regulated_pure_pursuit_controller</name>
   <version>0.0.1</version>
   <description>The regulated_pure_pursuit_controller package</description>
@@ -18,27 +18,28 @@
   <build_depend>pluginlib</build_depend>
   <build_depend>ddynamic_reconfigure</build_depend>
 
-  <run_depend>roscpp</run_depend>
-  <run_depend>tf</run_depend>
-  <run_depend>costmap_2d</run_depend>
-  <run_depend>nav_core</run_depend>
-  <run_depend>nav_msgs</run_depend>
-  <run_depend>pluginlib</run_depend>
-  <run_depend>ddynamic_reconfigure</run_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>tf</exec_depend>
+  <exec_depend>costmap_2d</exec_depend>
+  <exec_depend>nav_core</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>pluginlib</exec_depend>
+  <exec_depend>ddynamic_reconfigure</exec_depend>
 
+  <depend>base_local_planner</depend>
 
-  <build_depend>logging_tools</build_depend>
-  <run_depend>logging_tools</run_depend>
+  <!-- <build_depend>logging_tools</build_depend>
+  <exec_depend>logging_tools</exec_depend> -->
 
-  <build_depend>mbf_costmap_core</build_depend>
-  <run_depend>mbf_costmap_core</run_depend>
+  <!-- <build_depend>mbf_costmap_core</build_depend>
+  <exec_depend>mbf_costmap_core</exec_depend>
   
   <build_depend>mbf_msgs</build_depend>
-  <run_depend>mbf_msgs</run_depend>
+  <exec_depend>mbf_msgs</exec_depend> -->
 
   <export>
     <nav_core plugin="${prefix}/regulated_pure_pursuit_controller.xml"/>
-    <mbf_costmap_core plugin="${prefix}/regulated_pure_pursuit_controller.xml" />
+    <!-- <mbf_costmap_core plugin="${prefix}/regulated_pure_pursuit_controller.xml" /> -->
   </export>
 
 </package>
