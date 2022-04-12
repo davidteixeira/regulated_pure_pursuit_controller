@@ -63,15 +63,15 @@ namespace regulated_pure_pursuit_controller
             std::vector<std::string> csv_header = {"name", "wall","user","system","User+System"};
 
             //Start timer
-            cpu_timer_ = new boost::timer::cpu_timer();
-            csv_writer_.reset(new CSVManipulator("/logging/", "test.csv", true, nullptr, false));
-            timer_log_csv_.push_back(csv_header);
-            csv_writer_->writeData(timer_log_csv_);
+            //cpu_timer_ = new boost::timer::cpu_timer();
+            // csv_writer_.reset(new CSVManipulator("/logging/", "test.csv", true, nullptr, false));
+            //timer_log_csv_.push_back(csv_header);
+            // csv_writer_->writeData(timer_log_csv_);
 
-            cpu_timer_tgp_ = new boost::timer::cpu_timer();
-            csv_writer_tgp_.reset(new CSVManipulator("/logging/", "test_transformglobalplan.csv", true, nullptr, false));
-            timer_log_csv_tgp_.push_back(csv_header);
-            csv_writer_tgp_->writeData(timer_log_csv_);
+            //cpu_timer_tgp_ = new boost::timer::cpu_timer();
+            //csv_writer_tgp_.reset(new CSVManipulator("/logging/", "test_transformglobalplan.csv", true, nullptr, false));
+            //timer_log_csv_tgp_.push_back(csv_header);
+            //csv_writer_tgp_->writeData(timer_log_csv_);
 
         #endif 
 
@@ -218,10 +218,10 @@ namespace regulated_pure_pursuit_controller
         }
 
         #ifdef DEBUG_TIMER
-            timer_log_csv_.clear();
-            double wall_elapsed = cpu_timer_->elapsed().wall;
-            double user_elapsed = cpu_timer_->elapsed().user;
-            double system_elapsed = cpu_timer_->elapsed().system;
+            // timer_log_csv_.clear();
+            // double wall_elapsed = cpu_timer_->elapsed().wall;
+            // double user_elapsed = cpu_timer_->elapsed().user;
+            // double system_elapsed = cpu_timer_->elapsed().system;
         #endif
 
         static uint32_t seq = 0;
@@ -243,7 +243,7 @@ namespace regulated_pure_pursuit_controller
         getRobotVel(speed);
 
         #ifdef DEBUG_TIMER
-            timer_log_csv_.push_back(addCheckpoint(wall_elapsed, user_elapsed, system_elapsed, "getRobotPoseAndVel"));
+            // timer_log_csv_.push_back(addCheckpoint(wall_elapsed, user_elapsed, system_elapsed, "getRobotPoseAndVel"));
         #endif
 
         // prune global plan to cut off parts of the past (spatially before the robot)
@@ -262,7 +262,7 @@ namespace regulated_pure_pursuit_controller
         }
 
         #ifdef DEBUG_TIMER
-            timer_log_csv_.push_back(addCheckpoint(wall_elapsed, user_elapsed, system_elapsed, "transformGlobalPlan"));
+            // timer_log_csv_.push_back(addCheckpoint(wall_elapsed, user_elapsed, system_elapsed, "transformGlobalPlan"));
         #endif
 
         // check if global goal is reached
@@ -278,7 +278,7 @@ namespace regulated_pure_pursuit_controller
         }
 
         #ifdef DEBUG_TIMER
-            timer_log_csv_.push_back(addCheckpoint(wall_elapsed, user_elapsed, system_elapsed, "checkIfGoalReached"));
+            // timer_log_csv_.push_back(addCheckpoint(wall_elapsed, user_elapsed, system_elapsed, "checkIfGoalReached"));
         #endif
 
         // Return false if the transformed global plan is empty
@@ -298,7 +298,7 @@ namespace regulated_pure_pursuit_controller
 
 
         #ifdef DEBUG_TIMER
-            timer_log_csv_.push_back(addCheckpoint(wall_elapsed, user_elapsed, system_elapsed, "getLookAheadDistAndPoint"));
+            // timer_log_csv_.push_back(addCheckpoint(wall_elapsed, user_elapsed, system_elapsed, "getLookAheadDistAndPoint"));
         #endif
 
         //Carrot distance squared
@@ -319,7 +319,7 @@ namespace regulated_pure_pursuit_controller
         }
 
         #ifdef DEBUG_TIMER
-            timer_log_csv_.push_back(addCheckpoint(wall_elapsed, user_elapsed, system_elapsed, "carrotDistCalculation"));
+            // timer_log_csv_.push_back(addCheckpoint(wall_elapsed, user_elapsed, system_elapsed, "carrotDistCalculation"));
         #endif
 
         linear_vel = desired_linear_vel_;
@@ -349,7 +349,7 @@ namespace regulated_pure_pursuit_controller
         }
 
         #ifdef DEBUG_TIMER
-            timer_log_csv_.push_back(addCheckpoint(wall_elapsed, user_elapsed, system_elapsed, "applyConstraints"));
+            // timer_log_csv_.push_back(addCheckpoint(wall_elapsed, user_elapsed, system_elapsed, "applyConstraints"));
         #endif
 
         //Collision checking on this velocity heading
@@ -359,8 +359,8 @@ namespace regulated_pure_pursuit_controller
         }
 
         #ifdef DEBUG_TIMER
-            timer_log_csv_.push_back(addCheckpoint(wall_elapsed, user_elapsed, system_elapsed, "isCollisionImminent"));
-            csv_writer_->writeData(timer_log_csv_);
+            // timer_log_csv_.push_back(addCheckpoint(wall_elapsed, user_elapsed, system_elapsed, "isCollisionImminent"));
+            // csv_writer_->writeData(timer_log_csv_);
         #endif
 
         // populate and return message
@@ -532,10 +532,10 @@ namespace regulated_pure_pursuit_controller
         transformed_plan.clear();
 
         #ifdef DEBUG_TIMER
-            timer_log_csv_tgp_.clear();
-            double wall_elapsed = cpu_timer_->elapsed().wall;
-            double user_elapsed = cpu_timer_->elapsed().user;
-            double system_elapsed = cpu_timer_->elapsed().system;
+            // timer_log_csv_tgp_.clear();
+            // double wall_elapsed = cpu_timer_->elapsed().wall;
+            // double user_elapsed = cpu_timer_->elapsed().user;
+            // double system_elapsed = cpu_timer_->elapsed().system;
         #endif
 
         try {
@@ -554,7 +554,7 @@ namespace regulated_pure_pursuit_controller
                                                                                             plan_pose.header.frame_id, transform_tolerance_);
 
             #ifdef DEBUG_TIMER
-                timer_log_csv_tgp_.push_back(addCheckpoint(wall_elapsed, user_elapsed, system_elapsed, "lookup_transform"));
+                // timer_log_csv_tgp_.push_back(addCheckpoint(wall_elapsed, user_elapsed, system_elapsed, "lookup_transform"));
             #endif
 
             //let's get the pose of the robot in the frame of the plan
@@ -589,7 +589,7 @@ namespace regulated_pure_pursuit_controller
             }
 
             #ifdef DEBUG_TIMER
-                timer_log_csv_tgp_.push_back(addCheckpoint(wall_elapsed, user_elapsed, system_elapsed, "getPointOnPlan"));
+                // timer_log_csv_tgp_.push_back(addCheckpoint(wall_elapsed, user_elapsed, system_elapsed, "getPointOnPlan"));
             #endif
 
             geometry_msgs::PoseStamped newer_pose;
@@ -643,8 +643,8 @@ namespace regulated_pure_pursuit_controller
             if (tf_plan_to_robot_frame) *tf_plan_to_robot_frame = plan_to_robot_transform;
 
             #ifdef DEBUG_TIMER
-                timer_log_csv_tgp_.push_back(addCheckpoint(wall_elapsed, user_elapsed, system_elapsed, "transformPlan"));
-                csv_writer_tgp_->writeData(timer_log_csv_);
+                // timer_log_csv_tgp_.push_back(addCheckpoint(wall_elapsed, user_elapsed, system_elapsed, "transformPlan"));
+                // csv_writer_tgp_->writeData(timer_log_csv_);
             #endif
 
         }
