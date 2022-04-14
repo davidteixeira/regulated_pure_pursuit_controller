@@ -84,9 +84,9 @@ namespace regulated_pure_pursuit_controller
 
         //Rotate to heading param
         nh.param<bool>("use_rotate_to_heading", use_rotate_to_heading_, true);
-        nh.param<double>("rotate_to_heading_min_angle", rotate_to_heading_min_angle_, 0.785);
+        nh.param<double>("rotate_to_heading_min_angle", rotate_to_heading_min_angle_, 0.262);
         nh.param<double>("rotate_to_heading_angular_vel", rotate_to_heading_angular_vel_, 0.15);
-        nh.param<double>("max_angular_accel", max_angular_accel_, 0.1);
+        nh.param<double>("max_angular_accel", max_angular_accel_, 0.3);
 
         //Reversing
         nh.param<bool>("allow_reversing", allow_reversing_, false);
@@ -102,15 +102,15 @@ namespace regulated_pure_pursuit_controller
         nh.param<double>("min_approach_linear_velocity", min_approach_linear_velocity_, 0.05);
 
         //Regulated linear velocity scaling
-        nh.param<bool>("use_regulated_linear_velocity_scaling", use_regulated_linear_velocity_scaling_, false);
+        nh.param<bool>("use_regulated_linear_velocity_scaling", use_regulated_linear_velocity_scaling_, true);
         nh.param<double>("regulated_linear_scaling_min_radius", regulated_linear_scaling_min_radius_, 0.9);
-        nh.param<double>("regulated_linear_scaling_min_speed", regulated_linear_scaling_min_speed_, 0.25);
+        nh.param<double>("regulated_linear_scaling_min_speed", regulated_linear_scaling_min_speed_, 0.05);
         
         //Inflation cost scaling (Limit velocity by proximity to obstacles)
         nh.param<bool>("use_cost_regulated_linear_velocity_scaling", use_cost_regulated_linear_velocity_scaling_, true);
         nh.param<double>("inflation_cost_scaling_factor", inflation_cost_scaling_factor_, 3.0);
         nh.param<double>("cost_scaling_dist", cost_scaling_dist_, 0.6);
-        nh.param<double>("cost_scaling_gain", cost_scaling_gain_, 1.0);
+        nh.param<double>("cost_scaling_gain", cost_scaling_gain_, 0.75);
         if (inflation_cost_scaling_factor_ <= 0.0){
             ROS_WARN("The value inflation_cost_scaling_factor is incorrectly set, "
                 "it should be >0. Disabling cost regulated linear velocity scaling.");
@@ -134,7 +134,7 @@ namespace regulated_pure_pursuit_controller
 
         ddr_.reset(new ddynamic_reconfigure::DDynamicReconfigure(nh));
         ddr_->registerVariable<double>("lookahead_time", &this->lookahead_time_, "", 0.0, 20.0);
-        ddr_->registerVariable<double>("lookahead_dist", &this->lookahead_time_, "", 0.0, 20.0);
+        ddr_->registerVariable<double>("lookahead_dist", &this->lookahead_dist_, "", 0.0, 20.0);
 
         ddr_->registerVariable<bool>("use_velocity_scaled_lookahead_dist", &this->use_velocity_scaled_lookahead_dist_);
         ddr_->registerVariable<double>("min_lookahead_dist", &this->min_lookahead_dist_, "", 0.0, 5.0);
