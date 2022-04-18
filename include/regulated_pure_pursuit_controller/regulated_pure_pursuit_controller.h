@@ -131,7 +131,8 @@ namespace regulated_pure_pursuit_controller{
     bool shouldRotateToPath( const geometry_msgs::PoseStamped & carrot_pose, 
                               double & angle_to_path);
 
-    bool shouldRotateToGoalHeading( const geometry_msgs::PoseStamped & carrot_pose);
+    bool shouldRotateToGoalHeading( const geometry_msgs::PoseStamped & carrot_pose,
+                                    double & angle_to_goal);
 
     void rotateToHeading( double & linear_vel, double & angular_vel,
                           const double & angle_to_path, 
@@ -233,6 +234,7 @@ namespace regulated_pure_pursuit_controller{
 
       //Tolerances
       double goal_dist_tol_{0.2};
+      double goal_angle_tol_{0.2};
       int min_global_plan_complete_size_;
       ros::Duration transform_tolerance_;
       //Control frequency
