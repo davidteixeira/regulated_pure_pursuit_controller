@@ -26,7 +26,7 @@ PLUGINLIB_EXPORT_CLASS(regulated_pure_pursuit_controller::RegulatedPurePursuitCo
 namespace regulated_pure_pursuit_controller
 {
 
-    RegulatedPurePursuitController::RegulatedPurePursuitController() : initialized_(false), odom_helper_("odom"), goal_reached_(false)
+    RegulatedPurePursuitController::RegulatedPurePursuitController() : initialized_(false), odom_helper_("odom"), goal_reached_(false), rotate_only_(false)
     { }    
 
     void RegulatedPurePursuitController::initialize(std::string name, tf2_ros::Buffer *tf, 
@@ -185,6 +185,7 @@ namespace regulated_pure_pursuit_controller
         global_plan_ = orig_global_plan;
 
         goal_reached_ = false;
+        rotate_only_ = false;
 
         return true;
     }
@@ -239,8 +240,6 @@ namespace regulated_pure_pursuit_controller
         // check if global goal is reached
         geometry_msgs::PoseStamped global_goal;
         tf2::doTransform(global_plan_.back(), global_goal, tf_plan_to_robot_frame);
-        double dx_2 = global_goal.pose.position.x * global_goal.pose.position.x;
-        double dy_2 = global_goal.pose.position.y * global_goal.pose.position.y;
 
         // Return false if the transformed global plan is empty
         if (transformed_plan.empty())
@@ -278,12 +277,16 @@ namespace regulated_pure_pursuit_controller
         // Make sure we're in compliance with basic constraints
         double angle_to_heading;
         double angle_to_goal = tf2::getYaw(transformed_plan.back().pose.orientation);
+        double dist_to_goal = std::hypot(global_goal.pose.position.x, global_goal.pose.position.y);
 
         // Check if goal has been reached
-        if(fabs(std::sqrt(dx_2 + dy_2)) < goal_dist_tol_ && fabs(angle_to_goal) < goal_angle_tol_ && global_plan_.size() <= min_global_plan_complete_size_)
+        if(dist_to_goal < goal_dist_tol_ && global_plan_.size() <= min_global_plan_complete_size_)
         {
-            goal_reached_ = true;
-            return mbf_msgs::ExePathResult::SUCCESS;
+            if (fabs(angle_to_goal) < goal_angle_tol_) {
+                goal_reached_ = true;
+                return mbf_msgs::ExePathResult::SUCCESS;
+            }
+            else rotate_only_ = true;
         }
 
         //IF robot should use_rotate_to_heading_ && dist_to_goal < goal_dist_tol_
@@ -292,7 +295,11 @@ namespace regulated_pure_pursuit_controller
         } 
         //IF robot should use_rotate_to_heading_ && angle_to_heading > rotate_to_heading_min_angle_
         else if (shouldRotateToPath(carrot_pose, angle_to_heading)) {
-            rotateToHeading(linear_vel, angular_vel, angle_to_heading, speed);
+            // Calculate target angle differently, if we are very close to final goal
+            if (dist_to_goal > 2.0 * goal_dist_tol_)
+                rotateToHeading(linear_vel, angular_vel, angle_to_heading, speed);
+            else
+                rotateToHeading(linear_vel, angular_vel, angle_to_goal, speed);
         } 
         //Travel forward and accordinging to the curvature
         else {
@@ -354,7 +361,7 @@ namespace regulated_pure_pursuit_controller
     {
         // Whether we should rotate robot to goal heading
         double dist_to_goal = std::hypot(carrot_pose.pose.position.x, carrot_pose.pose.position.y);
-        return use_rotate_to_heading_ && dist_to_goal < goal_dist_tol_ && angle_to_goal > goal_angle_tol_;
+        return use_rotate_to_heading_ && (dist_to_goal < goal_dist_tol_ || rotate_only_) && fabs(angle_to_goal) > goal_angle_tol_;
     }
 
     void RegulatedPurePursuitController::rotateToHeading(
