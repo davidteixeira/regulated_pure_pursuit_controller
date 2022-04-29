@@ -120,8 +120,8 @@ namespace regulated_pure_pursuit_controller
         //Collision avoidance
         nh.param<double>("max_allowed_time_to_collision_up_to_carrot", max_allowed_time_to_collision_up_to_carrot_, 1.0);
         
-        nh.param<double>("goal_dist_tol", goal_dist_tol_, 0.1);
-        nh.param<double>("goal_angle_tol", goal_angle_tol_, 0.1);
+        nh.param<double>("goal_dist_tol", goal_dist_tol_, 0.01);
+        nh.param<double>("goal_angle_tol", goal_angle_tol_, 0.03);
 
         double control_frequency;
         nh.param<double>("control_frequency", control_frequency, 20);
