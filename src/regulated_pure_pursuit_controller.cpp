@@ -76,15 +76,15 @@ namespace regulated_pure_pursuit_controller
         nh.param<double>("global_plan_prune_distance", global_plan_prune_distance_, 1.0);
     
         //Lookahead
-        nh.param<double>("lookahead_time", lookahead_time_, 1.5);
-        nh.param<double>("lookahead_dist", lookahead_dist_, 0.45);
-        nh.param<bool>("use_velocity_scaled_lookahead_dist", use_velocity_scaled_lookahead_dist_, false);
-        nh.param<double>("min_lookahead_dist", min_lookahead_dist_, 0.3);
-        nh.param<double>("max_lookahead_dist", max_lookahead_dist_, 0.9);
+        nh.param<double>("lookahead_time", lookahead_time_, 3.0);
+        nh.param<double>("lookahead_dist", lookahead_dist_, 0.4);
+        nh.param<bool>("use_velocity_scaled_lookahead_dist", use_velocity_scaled_lookahead_dist_, true);
+        nh.param<double>("min_lookahead_dist", min_lookahead_dist_, 0.25);
+        nh.param<double>("max_lookahead_dist", max_lookahead_dist_, 0.5);
 
         //Rotate to heading param
         nh.param<bool>("use_rotate_to_heading", use_rotate_to_heading_, true);
-        nh.param<double>("rotate_to_heading_min_angle", rotate_to_heading_min_angle_, 0.262);
+        nh.param<double>("rotate_to_heading_min_angle", rotate_to_heading_min_angle_, 0.2);
         nh.param<double>("rotate_to_heading_angular_vel", rotate_to_heading_angular_vel_, 0.15);
         nh.param<double>("max_angular_accel", max_angular_accel_, 0.3);
 
@@ -103,8 +103,8 @@ namespace regulated_pure_pursuit_controller
 
         //Regulated linear velocity scaling
         nh.param<bool>("use_regulated_linear_velocity_scaling", use_regulated_linear_velocity_scaling_, true);
-        nh.param<double>("regulated_linear_scaling_min_radius", regulated_linear_scaling_min_radius_, 0.9);
-        nh.param<double>("regulated_linear_scaling_min_speed", regulated_linear_scaling_min_speed_, 0.05);
+        nh.param<double>("regulated_linear_scaling_min_radius", regulated_linear_scaling_min_radius_, 0.5);
+        nh.param<double>("regulated_linear_scaling_min_speed", regulated_linear_scaling_min_speed_, 0.025);
         
         //Inflation cost scaling (Limit velocity by proximity to obstacles)
         nh.param<bool>("use_cost_regulated_linear_velocity_scaling", use_cost_regulated_linear_velocity_scaling_, true);
@@ -118,13 +118,13 @@ namespace regulated_pure_pursuit_controller
         }
 
         //Collision avoidance
-        nh.param<double>("max_allowed_time_to_collision_up_to_carrot", max_allowed_time_to_collision_up_to_carrot_, 1.0);
+        nh.param<double>("max_allowed_time_to_collision_up_to_carrot", max_allowed_time_to_collision_up_to_carrot_, 3.0);
         
         nh.param<double>("goal_dist_tol", goal_dist_tol_, 0.01);
         nh.param<double>("goal_angle_tol", goal_angle_tol_, 0.03);
 
         double control_frequency;
-        nh.param<double>("control_frequency", control_frequency, 20);
+        nh.param<double>("control_frequency", control_frequency, 10);
         control_duration_ = 1.0 / control_frequency;
 
         double transform_tolerance;
