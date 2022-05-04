@@ -318,6 +318,7 @@ namespace regulated_pure_pursuit_controller
         const double & carrot_dist = std::hypot(carrot_pose.pose.position.x, carrot_pose.pose.position.y);
         if (isCollisionImminent(robot_pose, linear_vel, angular_vel, carrot_dist)) {
             ROS_WARN("RegulatedPurePursuitController detected collision ahead!");
+            return mbf_msgs::ExePathResult::FAILURE;
         }
 
         // populate and return message
@@ -690,6 +691,10 @@ namespace regulated_pure_pursuit_controller
             costmap_ros_->getLayeredCostmap()->isTrackingUnknown())
         {
             return false;
+        }
+
+        if (footprint_cost < 0) {
+            return true;
         }
 
         // if occupied or unknown and not to traverse unknown space
