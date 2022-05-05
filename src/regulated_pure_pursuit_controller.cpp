@@ -43,7 +43,8 @@ namespace regulated_pure_pursuit_controller
             robot_base_frame_ = costmap_ros_->getBaseFrameID();
 
             costmap_model_ = new base_local_planner::CostmapModel(*costmap_);
-            
+            first_collision_ = true;
+            retry_counter_ = 0;
 
             initParams(pnh_);
             initPubSubSrv(pnh_);
@@ -80,7 +81,7 @@ namespace regulated_pure_pursuit_controller
         nh.param<double>("lookahead_dist", lookahead_dist_, 0.4);
         nh.param<bool>("use_velocity_scaled_lookahead_dist", use_velocity_scaled_lookahead_dist_, true);
         nh.param<double>("min_lookahead_dist", min_lookahead_dist_, 0.25);
-        nh.param<double>("max_lookahead_dist", max_lookahead_dist_, 0.5);
+        nh.param<double>("max_lookahead_dist", max_lookahead_dist_, 1.0);
 
         //Rotate to heading param
         nh.param<bool>("use_rotate_to_heading", use_rotate_to_heading_, true);
@@ -317,8 +318,31 @@ namespace regulated_pure_pursuit_controller
         //Collision checking on this velocity heading
         const double & carrot_dist = std::hypot(carrot_pose.pose.position.x, carrot_pose.pose.position.y);
         if (isCollisionImminent(robot_pose, linear_vel, angular_vel, carrot_dist)) {
-            ROS_WARN("RegulatedPurePursuitController detected collision ahead!");
-            return mbf_msgs::ExePathResult::FAILURE;
+            ROS_WARN("RegulatedPurePursuitController detected collision ahead! Adapting lookahead distance...");
+
+            if (first_collision_) {
+                first_collision_ = false;
+                use_velocity_scaled_lookahead_dist_ = false;
+                lookahead_dist_ = 0.0;
+            }
+
+            if (lookahead_dist_ < 1.0) {
+                lookahead_dist_ += 0.05;
+            }
+            else {
+                first_collision_ = true;
+                retry_counter_ += 1;
+            }
+            // Reset parameters on failure
+            if (retry_counter_ > 3) {
+                first_collision_ = true;
+                retry_counter_ = 0;
+                use_velocity_scaled_lookahead_dist_ = true;
+                lookahead_dist_ = 0.45;
+                return mbf_msgs::ExePathResult::FAILURE;
+            }
+            
+            return mbf_msgs::ExePathResult::SUCCESS; // this effectively sends a zero speed command
         }
 
         // populate and return message
@@ -343,6 +367,10 @@ namespace regulated_pure_pursuit_controller
     {
         if (goal_reached_){
             ROS_INFO("[RegulatedPurePursuitController] Goal Reached!");
+            first_collision_ = true;
+            retry_counter_ = 0;
+            use_velocity_scaled_lookahead_dist_ = true;
+            lookahead_dist_ = 0.45;
             return true;
         }
         return false;

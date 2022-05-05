@@ -272,6 +272,8 @@ namespace regulated_pure_pursuit_controller{
       std::vector<geometry_msgs::PoseStamped> global_plan_; //Stores the current global plan
       bool goal_reached_;
       bool rotate_only_;
+      bool first_collision_;
+      int retry_counter_;
 
       std::unique_ptr<ddynamic_reconfigure::DDynamicReconfigure> ddr_;
 
