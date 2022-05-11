@@ -30,6 +30,7 @@
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
 
+#include <std_msgs/Bool.h>
 #include <nav_msgs/Path.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -188,6 +189,8 @@ namespace regulated_pure_pursuit_controller{
         const double & speed_limit,
         const bool & percentage);
 
+    void rotateAtGoalCb(const std_msgs::Bool::ConstPtr& msg);
+
     private:
       bool initialized_{false}; //indication of whether program has initialized
 
@@ -258,7 +261,7 @@ namespace regulated_pure_pursuit_controller{
       ros::Publisher global_path_pub_, local_plan_pub_;
       ros::Publisher carrot_pub_;
       ros::Publisher carrot_arc_pub_;
-
+      ros::Subscriber rotate_at_goal_sub_;
 
       /**
        * Configs
@@ -274,6 +277,7 @@ namespace regulated_pure_pursuit_controller{
       bool rotate_only_;
       bool first_collision_;
       int retry_counter_;
+      bool rotate_at_goal_;
 
       std::unique_ptr<ddynamic_reconfigure::DDynamicReconfigure> ddr_;
 
