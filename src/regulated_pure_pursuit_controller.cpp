@@ -196,6 +196,16 @@ namespace regulated_pure_pursuit_controller
         global_plan_.clear();
         global_plan_ = orig_global_plan;
 
+        // Publish the global plan
+        nav_msgs::Path global_path;
+        global_path.header.frame_id = "map";
+        global_path.header.stamp = ros::Time::now();
+        for (int i = 0; i < global_plan_.size(); i++) {
+            global_path.poses.push_back(global_plan_[i]);
+        }
+
+        global_path_pub_.publish(global_path);
+
         goal_reached_ = false;
         rotate_only_ = false;
 
