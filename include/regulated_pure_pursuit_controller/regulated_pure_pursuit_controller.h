@@ -30,6 +30,7 @@
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
 
+#include <std_msgs/Int32.h>
 #include <nav_msgs/Path.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -258,7 +259,7 @@ namespace regulated_pure_pursuit_controller{
       ros::Publisher global_path_pub_, local_plan_pub_;
       ros::Publisher carrot_pub_;
       ros::Publisher carrot_arc_pub_;
-
+      ros::Publisher infeasible_pub_;
 
       /**
        * Configs

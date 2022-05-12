@@ -66,6 +66,7 @@ namespace regulated_pure_pursuit_controller
         local_plan_pub_ = nh.advertise<nav_msgs::Path>("local_plan", 1);
         carrot_pub_ = nh.advertise<geometry_msgs::PointStamped>("lookahead_point", 1);
         carrot_arc_pub_ = nh.advertise<nav_msgs::Path>("lookahead_collision_arc", 1);
+        infeasible_pub_ = nh.advertise<std_msgs::Int32>("no_infeasible", 1);
     }
 
     void RegulatedPurePursuitController::initParams(ros::NodeHandle& nh){
@@ -78,7 +79,7 @@ namespace regulated_pure_pursuit_controller
     
         //Lookahead
         nh.param<double>("lookahead_time", lookahead_time_, 3.0);
-        nh.param<double>("lookahead_dist", lookahead_dist_, 0.4);
+        nh.param<double>("lookahead_dist", lookahead_dist_, 0.45);
         nh.param<bool>("use_velocity_scaled_lookahead_dist", use_velocity_scaled_lookahead_dist_, true);
         nh.param<double>("min_lookahead_dist", min_lookahead_dist_, 0.25);
         nh.param<double>("max_lookahead_dist", max_lookahead_dist_, 1.0);
@@ -86,8 +87,8 @@ namespace regulated_pure_pursuit_controller
         //Rotate to heading param
         nh.param<bool>("use_rotate_to_heading", use_rotate_to_heading_, true);
         nh.param<double>("rotate_to_heading_min_angle", rotate_to_heading_min_angle_, 0.2);
-        nh.param<double>("rotate_to_heading_angular_vel", rotate_to_heading_angular_vel_, 0.15);
-        nh.param<double>("max_angular_accel", max_angular_accel_, 0.3);
+        nh.param<double>("rotate_to_heading_angular_vel", rotate_to_heading_angular_vel_, 0.1);
+        nh.param<double>("max_angular_accel", max_angular_accel_, 0.1);
 
         //Reversing
         nh.param<bool>("allow_reversing", allow_reversing_, false);
@@ -323,7 +324,7 @@ namespace regulated_pure_pursuit_controller
             if (first_collision_) {
                 first_collision_ = false;
                 use_velocity_scaled_lookahead_dist_ = false;
-                lookahead_dist_ = 0.0;
+                lookahead_dist_ = 0.15;
             }
 
             if (lookahead_dist_ < 1.0) {
@@ -332,22 +333,33 @@ namespace regulated_pure_pursuit_controller
             else {
                 first_collision_ = true;
                 retry_counter_ += 1;
+                std_msgs::Int32 retry_counter;
+                retry_counter.data = retry_counter_;
+                infeasible_pub_.publish(retry_counter);
             }
             // Reset parameters on failure
-            if (retry_counter_ > 3) {
-                first_collision_ = true;
-                retry_counter_ = 0;
-                use_velocity_scaled_lookahead_dist_ = true;
-                lookahead_dist_ = 0.45;
-                return mbf_msgs::ExePathResult::FAILURE;
-            }
+            // if (retry_counter_ > 3) {
+            //     first_collision_ = true;
+            //     retry_counter_ = 0;
+            //     use_velocity_scaled_lookahead_dist_ = true;
+            //     lookahead_dist_ = 0.45;
+            //     return mbf_msgs::ExePathResult::FAILURE;
+            // }
             
-            return mbf_msgs::ExePathResult::SUCCESS; // this effectively sends a zero speed command
+            return mbf_msgs::ExePathResult::FAILURE; // this effectively sends a zero speed command
         }
 
         // populate and return message
         cmd_vel.twist.linear.x = linear_vel;
         cmd_vel.twist.angular.z = angular_vel;
+
+        retry_counter_ = 0;
+        first_collision_ = true;
+        use_velocity_scaled_lookahead_dist_ = true;
+        lookahead_dist_ = 0.45;
+        std_msgs::Int32 retry_counter;
+        retry_counter.data = retry_counter_;
+        infeasible_pub_.publish(retry_counter);
 
         return mbf_msgs::ExePathResult::SUCCESS;
 
