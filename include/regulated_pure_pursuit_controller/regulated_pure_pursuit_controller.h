@@ -234,6 +234,7 @@ namespace regulated_pure_pursuit_controller{
 
       //Collision avoidance
       double max_allowed_time_to_collision_up_to_carrot_;
+      bool use_collision_avoidance_;
 
       //Tolerances
       double goal_dist_tol_{0.2};

@@ -130,6 +130,7 @@ namespace regulated_pure_pursuit_controller
         
         nh.param<double>("goal_dist_tol", goal_dist_tol_, 0.01);
         nh.param<double>("goal_angle_tol", goal_angle_tol_, 0.03);
+        nh.param<bool>("use_collision_avoidance", use_collision_avoidance_, true);
 
         double control_frequency;
         nh.param<double>("control_frequency", control_frequency, 10);
@@ -174,6 +175,7 @@ namespace regulated_pure_pursuit_controller
         ddr_->registerVariable<double>("cost_scaling_gain", &this->cost_scaling_gain_, "", 0.0, 10.0);
 
         //Collision avoidance
+        ddr_->registerVariable<bool>("use_collision_avoidance", &this->use_collision_avoidance_);
         ddr_->registerVariable<double>("max_allowed_time_to_collision_up_to_carrot", &this->max_allowed_time_to_collision_up_to_carrot_, "", 0.0, 10.0);
         ddr_->registerVariable<double>("goal_dist_tol", &this->goal_dist_tol_, "", 0.0, 4.0);
         ddr_->registerVariable<double>("goal_angle_tol", &this->goal_angle_tol_, "", 0.0, 4.0);
@@ -334,8 +336,9 @@ namespace regulated_pure_pursuit_controller
         }
 
         //Collision checking on this velocity heading
-        const double & carrot_dist = std::hypot(carrot_pose.pose.position.x, carrot_pose.pose.position.y);
-        if (isCollisionImminent(robot_pose, linear_vel, angular_vel, carrot_dist)) {
+        if (use_collision_avoidance_) {
+            const double & carrot_dist = std::hypot(carrot_pose.pose.position.x, carrot_pose.pose.position.y);
+            if (isCollisionImminent(robot_pose, linear_vel, angular_vel, carrot_dist)) {
             ROS_WARN("RegulatedPurePursuitController detected collision ahead! Adapting lookahead distance...");
 
             if (first_collision_) {
@@ -361,6 +364,7 @@ namespace regulated_pure_pursuit_controller
             }
             
             return mbf_msgs::ExePathResult::SUCCESS; // this effectively sends a zero speed command
+            }
         }
 
         // populate and return message
