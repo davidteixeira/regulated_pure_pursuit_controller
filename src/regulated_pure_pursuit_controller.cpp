@@ -45,6 +45,7 @@ namespace regulated_pure_pursuit_controller
             costmap_model_ = new base_local_planner::CostmapModel(*costmap_);
             first_collision_ = true;
             retry_counter_ = 0;
+            rotate_at_goal_ = true;
 
             initParams(pnh_);
             initPubSubSrv(pnh_);
@@ -61,12 +62,17 @@ namespace regulated_pure_pursuit_controller
 
     }
 
+    void RegulatedPurePursuitController::rotateAtGoalCb(const std_msgs::Bool::ConstPtr& msg){
+        rotate_at_goal_ = msg->data;
+    }
+
     void RegulatedPurePursuitController::initPubSubSrv(ros::NodeHandle& nh){
         global_path_pub_ = nh.advertise<nav_msgs::Path>("global_plan", 1);
         local_plan_pub_ = nh.advertise<nav_msgs::Path>("local_plan", 1);
         carrot_pub_ = nh.advertise<geometry_msgs::PointStamped>("lookahead_point", 1);
         carrot_arc_pub_ = nh.advertise<nav_msgs::Path>("lookahead_collision_arc", 1);
         infeasible_pub_ = nh.advertise<std_msgs::Int32>("no_infeasible", 1);
+        rotate_at_goal_sub_ = nh.subscribe("rotate_at_goal", 10, &RegulatedPurePursuitController::rotateAtGoalCb, this);
     }
 
     void RegulatedPurePursuitController::initParams(ros::NodeHandle& nh){
@@ -97,6 +103,7 @@ namespace regulated_pure_pursuit_controller
             "parameter cannot be set to true. By default setting use_rotate_to_heading true");
             allow_reversing_ = false;
         }
+        nh.param<bool>("rotate_at_goal", rotate_at_goal_, true);
 
         //Speed
         nh.param<double>("desired_linear_vel", desired_linear_vel_, 0.15);
@@ -124,6 +131,7 @@ namespace regulated_pure_pursuit_controller
         
         nh.param<double>("goal_dist_tol", goal_dist_tol_, 0.01);
         nh.param<double>("goal_angle_tol", goal_angle_tol_, 0.03);
+        nh.param<bool>("use_collision_avoidance", use_collision_avoidance_, true);
 
         double control_frequency;
         nh.param<double>("control_frequency", control_frequency, 10);
@@ -153,6 +161,8 @@ namespace regulated_pure_pursuit_controller
         ddr_->registerVariable<double>("desired_linear_vel", &this->desired_linear_vel_, "", 0.0, 10.0);
         ddr_->registerVariable<double>("max_angular_vel", &this->max_angular_vel_, "", 0.0, 10.0);
         ddr_->registerVariable<double>("min_approach_linear_velocity", &this->min_approach_linear_velocity_, "", 0.0, 10.0);
+        ddr_->registerVariable<bool>("allow_reversing", &this->allow_reversing_);
+        ddr_->registerVariable<bool>("rotate_at_goal", &this->rotate_at_goal_);
 
         //Regulated linear velocity scaling
         ddr_->registerVariable<bool>("use_regulated_linear_velocity_scaling", &this->use_regulated_linear_velocity_scaling_);
@@ -166,6 +176,7 @@ namespace regulated_pure_pursuit_controller
         ddr_->registerVariable<double>("cost_scaling_gain", &this->cost_scaling_gain_, "", 0.0, 10.0);
 
         //Collision avoidance
+        ddr_->registerVariable<bool>("use_collision_avoidance", &this->use_collision_avoidance_);
         ddr_->registerVariable<double>("max_allowed_time_to_collision_up_to_carrot", &this->max_allowed_time_to_collision_up_to_carrot_, "", 0.0, 10.0);
         ddr_->registerVariable<double>("goal_dist_tol", &this->goal_dist_tol_, "", 0.0, 4.0);
         ddr_->registerVariable<double>("goal_angle_tol", &this->goal_angle_tol_, "", 0.0, 4.0);
@@ -185,6 +196,16 @@ namespace regulated_pure_pursuit_controller
         // store the global plan
         global_plan_.clear();
         global_plan_ = orig_global_plan;
+
+        // Publish the global plan
+        nav_msgs::Path global_path;
+        global_path.header.frame_id = "map";
+        global_path.header.stamp = ros::Time::now();
+        for (int i = 0; i < global_plan_.size(); i++) {
+            global_path.poses.push_back(global_plan_[i]);
+        }
+
+        global_path_pub_.publish(global_path);
 
         goal_reached_ = false;
         rotate_only_ = false;
@@ -273,6 +294,7 @@ namespace regulated_pure_pursuit_controller
         double sign = 1.0;
         if (allow_reversing_) {
             sign = carrot_pose.pose.position.x >= 0.0 ? 1.0 : -1.0;
+            use_rotate_to_heading_ = false;
         }
 
         linear_vel = desired_linear_vel_;
@@ -288,7 +310,15 @@ namespace regulated_pure_pursuit_controller
                 goal_reached_ = true;
                 return mbf_msgs::ExePathResult::SUCCESS;
             }
-            else rotate_only_ = true;
+            else if (!rotate_at_goal_) {
+                goal_reached_ = true;
+                return mbf_msgs::ExePathResult::SUCCESS;
+            }
+            else {
+                rotate_only_ = true;
+                allow_reversing_ = false;
+                use_rotate_to_heading_ = true;
+            }
         }
 
         //IF robot should use_rotate_to_heading_ && dist_to_goal < goal_dist_tol_
@@ -317,8 +347,9 @@ namespace regulated_pure_pursuit_controller
         }
 
         //Collision checking on this velocity heading
-        const double & carrot_dist = std::hypot(carrot_pose.pose.position.x, carrot_pose.pose.position.y);
-        if (isCollisionImminent(robot_pose, linear_vel, angular_vel, carrot_dist)) {
+        if (use_collision_avoidance_) {
+            const double & carrot_dist = std::hypot(carrot_pose.pose.position.x, carrot_pose.pose.position.y);
+            if (isCollisionImminent(robot_pose, linear_vel, angular_vel, carrot_dist)) {
             ROS_WARN("RegulatedPurePursuitController detected collision ahead! Adapting lookahead distance...");
 
             if (first_collision_) {
@@ -346,7 +377,8 @@ namespace regulated_pure_pursuit_controller
             //     return mbf_msgs::ExePathResult::FAILURE;
             // }
             
-            return mbf_msgs::ExePathResult::FAILURE; // this effectively sends a zero speed command
+            return mbf_msgs::ExePathResult::SUCCESS; // this effectively sends a zero speed command
+            }
         }
 
         // populate and return message
