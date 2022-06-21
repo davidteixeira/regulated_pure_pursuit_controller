@@ -106,7 +106,7 @@ namespace regulated_pure_pursuit_controller
         nh.param<bool>("rotate_at_goal", rotate_at_goal_, true);
 
         //Speed
-        nh.param<double>("desired_linear_vel", desired_linear_vel_, 0.15);
+        nh.param<double>("desired_linear_vel", desired_linear_vel_, 0.05);
         nh.param<double>("max_angular_vel", max_angular_vel_, 0.15);
         nh.param<double>("min_approach_linear_velocity", min_approach_linear_velocity_, 0.05);
 
